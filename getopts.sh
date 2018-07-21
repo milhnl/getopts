@@ -4,10 +4,6 @@ _getopts_globmatch() {
     case "$2" in $1) return 0 ;; *) return 1 ;; esac ;
 }
 
-_getopts_regmatch() {
-    printf "%s" "$1" | grep -q "$2"
-}
-
 _getopts_inc() {
     case "$1" in
     '+')
@@ -21,8 +17,6 @@ _getopts_worker() {
     shift 2
     [ "${i%.*}" -gt $# ] && return 1
     shift $(( ${i%.*} - 1 ))
-    true "$@"
-    #_getopts_globmatch '--?*' "$1" || _getopts_globmatch '-[!-]*' "$1" ||return 1
     set -- "-$(printf "%s" "$1" | cut -c $(( 2 + ${i#*.} ))-)" "$2" "$3"
     opt="$(printf "%s" "$1" | awk "$(echo "$spec" \
         | sed "$(printf 's/.:\{0,1\}\(([^)]*)\)\{0,\}/&\\\n/g;s/(/\\\n(/g;')" \
