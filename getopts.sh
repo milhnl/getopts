@@ -63,19 +63,18 @@ _getopts_worker() {
 }
 
 _getopts_return() {
-    [ "${OPTIND-1}" = 1 ] && _getopts_subarg_index=0
-    i="${OPTIND-1}.$_getopts_subarg_index"
+    eval "i=\"\${${2#*:}-1.0}\""
     _getopts_worker "$@"
     case $? in
     0)
-        OPTIND="${i%.*}"
-        _getopts_subarg_index="${i#*.}"
-        eval "$2=\$opt"
+        eval "${2%:*}=\$opt"
+        eval "${2#*:}=\$i"
         OPTARG="$arg"
         ;;
     1)
-        OPTIND="$(( ${i%.*} + 1 ))"
-        eval "$2=\?"
+        eval "${2%:*}=\?"
+        eval "${2#*:}=\$i"
+        OPTARG="$arg"
         return 1
         ;;
     2)
