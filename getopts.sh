@@ -88,10 +88,3 @@ _getopts_return() {
 getopts() { #1: spec, 2: name, 3: args...
     spec="${1#:}" verbose="${1%%[!:]*}" opt= arg= i= _getopts_return "$@"
 }
-
-true PROGRAM START ------------------------------------------------------------
-while getopts "$OPTSTRING" OPT "$@"; do
-    printf '$OPTIND=%s $OPT=%s $OPTARG=%s\n' "$OPTIND" "$OPT" "$OPTARG"
-done
-printf '$OPTIND=%s $OPT=%s $OPTARG=%s\n' "$OPTIND" "$OPT" "$OPTARG"
-true
