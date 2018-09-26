@@ -43,7 +43,7 @@ _getopts_worker() {
             }
             /^./ { flag = "\\" $0; out = substr($0, 1, 1) }
             /^[\\"]/ { out = "\\" substr($0, 1, 1) }
-            /^[[:alnum:]]/ { flag = $0 }
+            /^[^][\\().*+?{}|^$\/]/ { flag = $0 }
             /^.:$/ {
                 printf("/^-%s./ { print \"1.0:%s: \"", substr(flag, 1, 1), out)
                 printf(" substr($0, 3); next }\n")
