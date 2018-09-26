@@ -34,17 +34,17 @@ _getopts_worker() {
             /^\(.*\)$/ {
                 long = substr($0,2,length($0) - 2)
                 if (substr(flag, 2) == ":") {
-                    printf("/^--%s=/ { print \"1.0:%s \" $2; next }\n", long, flag)
-                    printf("/^--%s$/ { print \"2.0:%s\"; next }\n", long, flag)
+                    printf("/^--%s=/ { print \"1.0:%s: \" $2; next }\n", long, flag)
+                    printf("/^--%s$/ { print \"2.0:%s:\"; next }\n", long, flag)
                 } else {
                     printf("/^--%s$/ { print \"1.0:%s\"; next }\n", long, flag)
                 }
                 next
             }
             /^.:$/ {
-                printf("/^-%s./ { print \"1.0:%s \" ", substr($0, 1, 1), $0)
-                printf("substr($0, 3); next }\n")
-                printf("/^-%s$/ { print \"2.0:%s\"; next }\n", substr($0,1,1), $0)
+                printf("/^-%s./ { print \"1.0:%s: \"", substr($0, 1, 1), $0)
+                printf(" substr($0, 3); next }\n")
+                printf("/^-%s$/ { print \"2.0:%s:\"; next }\n", substr($0,1,1), $0)
                 flag=$0; next
             }
             /^.$/ {

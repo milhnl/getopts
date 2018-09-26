@@ -16,20 +16,27 @@ testops() { #1: spec, 2:expected, 3:args...
     diff -u "a" "b"
 }
 
+#Test long option
 testops "a(append)bc" '
 2.0:a: 
 3.0:a: 
 ' -a --append
 
+#Test sharing the leading dash
 testops "abc" '
 1.1:b: 
 2.0:c: 
 3.0:a: 
 ' -bc -a
 
-testops "f:(file)b:c" '
-1.1:c: 
-2.0:b: argb
-4.0:f: argf
-' -cbargb --file argf
-
+#Test arguments
+testops "a:(along)b" '
+1.1:b: 
+2.0:a: arg0
+2.1:b: 
+4.0:a: arg1
+5.0:a: arg2
+7.0:a: arg3
+8.0:a: arg4
+10.0:a: arg5
+' -baarg0 -ba arg1 -aarg2 -a arg3 --along=arg4 --along arg5
