@@ -19,7 +19,7 @@ _getopts_worker() {
     [ "${i%.*}" -gt $# ] && return 1
     shift $(( ${i%.*} - 1 ))
     set -- "-$(printf "%s" "$1" | cut -c $(( 2 + ${i#*.} ))-)" "$2" "$3"
-    opt="$(printf "%s" "$1" | awk "$(echo "$spec" \
+    opt="$(printf "%s" "$1" | awk "$(printf '%s' "$spec" \
         | sed "$(printf 's/.:\{0,1\}\(([^)]*)\)\{0,\}/&\\\n/g;s/(/\\\n(/g;')" \
         | awk '
             BEGIN { print "BEGIN { FS = \"=\" }" }
@@ -55,7 +55,7 @@ _getopts_worker() {
             }
         ')"
     )" || return $?
-    case "$(echo "$opt" | sed 's/^[0-9]*\.[0-9]*:.//')" in
+    case "$(printf '%s' "$opt" | sed 's/^[0-9]*\.[0-9]*:.//')" in
     :\ *)
         arg="${opt#*.*:*: }"
         opt="${opt%: $arg}"

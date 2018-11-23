@@ -51,4 +51,3 @@ Bugs
     in the first argument, or being reset?
   - It does not currently support multiline option arguments. This will
     be the next, and probably last, feature to be added.
-  - The double-dash override doesn't work on `zsh`. 
