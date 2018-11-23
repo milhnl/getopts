@@ -10,12 +10,8 @@
 #this software. If not, see http://creativecommons.org/publicdomain/zero/1.0/
 
 _getopts_inc() {
-    case "$1" in
-    '+')
-        printf "%s.%s" "$(( ${2%.*} + ${3%.*} ))" \
-            "$( [ ${3#*.} != 0 ] && echo $(( ${2#*.} + ${3#*.} )) || echo 0)"
-        ;;
-    esac
+    printf "%s.%s" "$(( ${1%.*} + ${2%.*} ))" \
+        "$( [ ${2#*.} != 0 ] && echo $(( ${1#*.} + ${2#*.} )) || echo 0)"
 }
 
 _getopts_worker() {
@@ -69,7 +65,7 @@ _getopts_worker() {
         arg="$2"
         ;;
     esac
-    i=$(_getopts_inc + "$i" "${opt%%:*}")
+    i=$(_getopts_inc "$i" "${opt%%:*}")
     opt="${opt#*.*:}"
 }
 
