@@ -9,10 +9,6 @@
 #You should have received a copy of the CC0 Public Domain Dedication along with
 #this software. If not, see http://creativecommons.org/publicdomain/zero/1.0/
 
-_getopts_globmatch() {
-    case "$2" in $1) return 0 ;; *) return 1 ;; esac ;
-}
-
 _getopts_inc() {
     case "$1" in
     '+')
@@ -63,14 +59,17 @@ _getopts_worker() {
             }
         ')"
     )" || return $?
-    if _getopts_globmatch '*.*:*: *' "$opt"; then
+    case "$(echo "$opt" | sed 's/^[0-9]*\.[0-9]*:.//')" in
+    :\ *)
         arg="${opt#*.*:*: }"
         opt="${opt%: $arg}"
-    elif _getopts_globmatch '*.*:*:' "$opt"; then
+        ;;
+    :)
         opt="${opt%:}"
         arg="$2"
-    fi
-    i=$(_getopts_inc + "$i" "${opt%:*}")
+        ;;
+    esac
+    i=$(_getopts_inc + "$i" "${opt%%:*}")
     opt="${opt#*.*:}"
 }
 
