@@ -49,5 +49,4 @@ Bugs
     first argument, but `x` or `f`?). And using an extra variable does
     not work either. In that case, how do you discriminate between being
     in the first argument, or being reset?
-  - It does not currently support multiline option arguments. This will
-    be the next, and probably last, feature to be added.
+  - Verbose mode isn't added yet. Don't think anyone cares.

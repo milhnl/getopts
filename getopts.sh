@@ -18,11 +18,15 @@ _getopts_worker() {
     shift 2
     [ "${i%.*}" -gt $# ] && return 1
     shift $(( ${i%.*} - 1 ))
-    set -- "-$(printf "%s" "$1" | cut -c $(( 2 + ${i#*.} ))-)" "$2" "$3"
+    set -- "-$(printf "%s" "$1" | sed '1s/^.\{'$(( 1 + ${i#*.} ))'\}//')" \
+        "$2" "$3"
     opt="$(printf "%s" "$1" | awk "$(printf '%s' "$spec" \
         | sed "$(printf 's/.:\{0,1\}\(([^)]*)\)\{0,\}/&\\\n/g;s/(/\\\n(/g;')" \
         | awk '
-            BEGIN { print "BEGIN { FS = \"=\" }" }
+            BEGIN {
+                print "BEGIN { FS = \"=\" }"
+                print "{ if (s == 1) { print $0; next } else { s = 1 } }"
+            }
             /^\(.*\)$/ {
                 long = substr($0,2,length($0) - 2)
                 if (substr(flag, 2) == ":") {

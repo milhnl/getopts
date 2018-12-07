@@ -143,3 +143,11 @@ testops "a:(along)b" '
 8.0:a: arg4
 10.0:a: arg5
 ' -baarg0 -ba arg1 -aarg2 -a arg3 --along=arg4 --along arg5
+
+#Test long arguments
+testops "a:b" '
+2.0:a: arg0 line 1
+line 2
+3.0:b: 
+' -a"arg0 line 1
+line 2" -b
