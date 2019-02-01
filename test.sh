@@ -151,3 +151,7 @@ line 2
 3.0:b: 
 ' -a"arg0 line 1
 line 2" -b
+
+#Test initial state
+testops "a" '
+' aaaaa

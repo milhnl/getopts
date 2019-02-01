@@ -18,7 +18,7 @@ _getopts_worker() {
     shift 2
     [ "${i%.*}" -gt $# ] && return 1
     shift $(( ${i%.*} - 1 ))
-    set -- "-$(printf "%s" "$1" | sed '1s/^.\{'$(( 1 + ${i#*.} ))'\}//')" \
+    set -- "$(printf "%s" "$1" | sed '1s/^-.\{'$(( ${i#*.} ))'\}/-/')" \
         "$2" "$3"
     opt="$(printf "%s" "$1" | awk "$(printf '%s' "$spec" \
         | sed "$(printf 's/.:\{0,1\}\(([^)]*)\)\{0,\}/&\\\n/g;s/(/\\\n(/g;')" \
