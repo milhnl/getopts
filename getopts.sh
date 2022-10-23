@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 #getopts - POSIX shell long options parser
 
-#Written in 2018 by Michiel van den Heuvel (michielvdnheuvel@gmail.com)
+#Written in 2018-2022 by Michiel van den Heuvel (michielvdnheuvel@gmail.com)
 
 #To the extent possible under law, the author(s) have dedicated all copyright
 #and related and neighboring rights to this software to the public domain
@@ -19,7 +19,7 @@ _getopts_worker() {
     [ "${i%.*}" -gt $# ] && return 1
     shift $(( ${i%.*} - 1 ))
     set -- "$(printf "%s" "$1" | sed '1s/^-.\{'$(( ${i#*.} ))'\}/-/')" \
-        "$2" "$3"
+        "${2-}" "${3-}"
     opt="$(printf "%s" "$1" | awk "$(printf '%s' "$spec" \
         | sed "$(printf 's/.:\{0,1\}\(([^)]*)\)\{0,\}/&\\\n/g;s/(/\\\n(/g;')" \
         | awk '
