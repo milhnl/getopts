@@ -1,41 +1,41 @@
 #!/usr/bin/env sh
+set -eu
 
 . ./getopts.sh
 
 cd "$(mktemp -d)"
 
-testops() { #1: spec, 2:expected, 3:args...
-    INDEX=1.0
-    OPTSTRING="$1"
-    printf "%s" "$2" >"a"
-    printf "\n" >"b"
-    shift 2
+testops() { #1:description, 2:spec, 3:endindex, 3:expected, 3:args...
+    unset INDEX OPT OPTARG
+    DESCRIPTION="$1"
+    OPTSTRING="$2"
+    ENDINDEX="$3"
+    printf "%s" "$4" >"expect: $DESCRIPTION"
+    printf "\n" >"result: $DESCRIPTION"
+    shift 4
     while getopts "$OPTSTRING" "OPT:INDEX" "$@"; do
-        printf "%s:%s: %s\n" "$INDEX" "$OPT" "$OPTARG" >>"b"
+        printf "%s:%s: %s\n" "$INDEX" "$OPT" "$OPTARG" >>"result: $DESCRIPTION"
     done
-    diff -u "a" "b"
+    diff -u "expect: $DESCRIPTION" "result: $DESCRIPTION" ||:
+    [ "$ENDINDEX" = "$INDEX" ] || echo "INDEX: $DESCRIPTION $INDEX ~ $ENDINDEX"
 }
 
-#Test long option
-testops "a(append)bc" '
+testops "long options" "a(append)bc" 3.0 '
 2.0:a: 
 3.0:a: 
 ' -a --append
 
-#Test sharing the leading dash
-testops "abc" '
+testops "sharing the leading dash" "abc" 3.0 '
 1.1:b: 
 2.0:c: 
 3.0:a: 
 ' -bc -a
 
-#Test dash override
-testops "-" '
+testops "dash override" "-" 2.0 '
 2.0:-: 
 ' --
 
-#Test all printable ascii chars except ':'
-testops '() !"#$%&'"'"'*+,-./0123456789;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~' '
+testops "all printable ascii chars except ':'" '() !"#$%&'"'"'*+,-./0123456789;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~' 2.0 '
 1.1:(: 
 1.2:): 
 1.3: : 
@@ -132,8 +132,7 @@ testops '() !"#$%&'"'"'*+,-./0123456789;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abc
 2.0:~: 
 ' -'() !"#$%&'"'"'*+,-./0123456789;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~'
 
-#Test arguments
-testops "a:(along)b" '
+testops "arguments" "a:(along)b" 10.0 '
 1.1:b: 
 2.0:a: arg0
 2.1:b: 
@@ -144,14 +143,12 @@ testops "a:(along)b" '
 10.0:a: arg5
 ' -baarg0 -ba arg1 -aarg2 -a arg3 --along=arg4 --along arg5
 
-#Test long arguments
-testops "a:b" '
+testops "multiline arguments" "a:b" 3.0 '
 2.0:a: arg0 line 1
 line 2
 3.0:b: 
 ' -a"arg0 line 1
 line 2" -b
 
-#Test initial state
-testops "a" '
+testops "initial state" "a" 1.0 '
 ' aaaaa
