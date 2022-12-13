@@ -152,3 +152,9 @@ line 2" -b
 
 testops "initial state" "a" 1.0 '
 ' aaaaa
+
+testops "double dash terminator" "a" 2.0 '
+' -- a b c
+
+testops "empty argument" "a" 1.0 '
+' ''

@@ -54,11 +54,13 @@ _getopts_worker() {
             /^$/ { next }
             { print $0 | "cat >&2"; print "BEGIN { exit 3 }"; exit 3 }
             END { 
-                print "/^-./ { exit 2 }\n/^--$/ { exit 1 }"
-                print "/^[^-]/ { exit 1 }\n/^$/ { exit 1 }\n"
+                print "/^--$/ { print \"1.0\"; next }\n/^-./ { exit 2 }"
+                print "/^[^-]/ { print \"0.0\"; next }"
+                print "END { if (NR == 0) print \"0.0\"; }"
             }
         ')"
     )" || return $?
+    i=$(_getopts_inc "$i" "${opt%%:*}")
     case "$(printf '%s' "$opt" | sed 's/^[0-9]*\.[0-9]*:.//')" in
     :\ *)
         arg="${opt#*.*:*: }"
@@ -68,8 +70,11 @@ _getopts_worker() {
         opt="${opt%:}"
         arg="$2"
         ;;
+    [01].0)
+        opt=""
+        return 1
+        ;;
     esac
-    i=$(_getopts_inc "$i" "${opt%%:*}")
     opt="${opt#*.*:}"
 }
 
