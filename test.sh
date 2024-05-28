@@ -6,6 +6,9 @@ set -eu
 cd "$(mktemp -d)"
 
 testops() { #1:description, 2:spec, 3:endindex, 3:expected, 3:args...
+    for x in spec verbose opt arg i; do
+        eval "$x=sentinel"
+    done
     unset INDEX OPT OPTARG
     DESCRIPTION="$1"
     OPTSTRING="$2"
@@ -18,6 +21,9 @@ testops() { #1:description, 2:spec, 3:endindex, 3:expected, 3:args...
     done
     diff -u "expect: $DESCRIPTION" "result: $DESCRIPTION" ||:
     [ "$ENDINDEX" = "$INDEX" ] || echo "INDEX: $DESCRIPTION $INDEX ~ $ENDINDEX"
+    for x in spec verbose opt arg i; do
+        [ "$(eval "echo \"\$$x"\")" = sentinel ] || echo "getopts overwrote $x"
+    done
 }
 
 testops "long options" "a(append)bc" 3.0 '
