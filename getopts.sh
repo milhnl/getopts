@@ -10,19 +10,20 @@
 #this software. If not, see http://creativecommons.org/publicdomain/zero/1.0/
 
 _getopts_inc() {
-    printf "%s.%s" "$(( ${1%.*} + ${2%.*} ))" \
-        "$( [ ${2#*.} != 0 ] && echo $(( ${1#*.} + ${2#*.} )) || echo 0)"
+    printf "%s.%s" "$((${1%.*} + ${2%.*}))" \
+        "$([ ${2#*.} != 0 ] && echo $((${1#*.} + ${2#*.})) || echo 0)"
 }
 
 _getopts_worker() {
     shift 2
     [ "${i%.*}" -gt $# ] && return 1
-    shift $(( ${i%.*} - 1 ))
-    set -- "$(printf "%s" "$1" | sed '1s/^-.\{'$(( ${i#*.} ))'\}/-/')" \
+    shift $((${i%.*} - 1))
+    set -- "$(printf "%s" "$1" | sed '1s/^-.\{'$((${i#*.}))'\}/-/')" \
         "${2-}" "${3-}"
-    opt="$(printf "%s" "$1" | awk "$(printf '%s' "$spec" \
-        | sed "$(printf 's/.:\{0,1\}\(([^)]*)\)\{0,\}/&\\\n/g;s/(/\\\n(/g;')" \
-        | awk '
+    opt="$(
+        printf "%s" "$1" | awk "$(printf '%s' "$spec" \
+            | sed "$(printf 's/.:\{0,1\}\(([^)]*)\)\{0,\}/&\\\n/g;s/(/\\\n(/g;')" \
+            | awk '
             BEGIN {
                 print "BEGIN { FS = \"=\" }"
                 print "{ if (s == 1) { print $0; next } else { s = 1 } }"
@@ -94,10 +95,11 @@ _getopts_return() {
         return 1
         ;;
     2)
-        return 2 
+        return 2
         ;;
     *)
-        return 2 ;;
+        return 2
+        ;;
     esac
 }
 
