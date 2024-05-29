@@ -26,10 +26,14 @@ testops() { #1:description, 2:spec, 3:endindex, 3:expected, 3:args...
     done
 }
 
-testops "long options" "a(append)bc" 3.0 '
+testops "single option" "a" 2.0 '
 2.0:a: 
-3.0:a: 
-' -a --append
+' -a
+
+testops "multiple options" "ab" 3.0 '
+2.0:a: 
+3.0:b: 
+' -a -b
 
 testops "sharing the leading dash" "abc" 3.0 '
 1.1:b: 
@@ -37,9 +41,23 @@ testops "sharing the leading dash" "abc" 3.0 '
 3.0:a: 
 ' -bc -a
 
+testops "arguments" "a:b" 7.0 '
+1.1:b: 
+2.0:a: arg0
+2.1:b: 
+4.0:a: arg1
+5.0:a: arg2
+7.0:a: arg3
+' -baarg0 -ba arg1 -aarg2 -a arg3
+
 testops "dash override" "-" 2.0 '
 2.0:-: 
 ' --
+
+testops "long options" "a(append)bc" 3.0 '
+2.0:a: 
+3.0:a: 
+' -a --append
 
 testops "all printable ascii chars except ':'" '() !"#$%&'"'"'*+,-./0123456789;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~' 2.0 '
 1.1:(: 
@@ -138,16 +156,10 @@ testops "all printable ascii chars except ':'" '() !"#$%&'"'"'*+,-./0123456789;<
 2.0:~: 
 ' -'() !"#$%&'"'"'*+,-./0123456789;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~'
 
-testops "arguments" "a:(along)b" 10.0 '
-1.1:b: 
+testops "long option arguments" "a:(along)b" 4.0 '
 2.0:a: arg0
-2.1:b: 
 4.0:a: arg1
-5.0:a: arg2
-7.0:a: arg3
-8.0:a: arg4
-10.0:a: arg5
-' -baarg0 -ba arg1 -aarg2 -a arg3 --along=arg4 --along arg5
+' --along=arg0 --along arg1
 
 testops "multiline arguments" "a:b" 3.0 '
 2.0:a: arg0 line 1
