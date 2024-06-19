@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 #getopts - POSIX shell long options parser
 
-#Written in 2018-2022 by Michiel van den Heuvel (michielvdnheuvel@gmail.com)
+#Written in 2018-2024 by Michiel van den Heuvel (michielvdnheuvel@gmail.com)
 
 #To the extent possible under law, the author(s) have dedicated all copyright
 #and related and neighboring rights to this software to the public domain
