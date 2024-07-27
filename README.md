@@ -40,7 +40,7 @@ grammar for long options is derived from Solaris and extremely simple to use.
 
 The full usage of `getopts` is:
 
-    getopts <optstring> <opt>:<idx> [args...]
+    getopts <optstring> <opt>:<idx>[:<arg>] [args...]
 
 #### `optstring`
 
@@ -68,10 +68,28 @@ An example is given above under 'Usage'.
 
       shift $(( ${INDEX%.\*} - 1 ))
 
+- `arg`: The shell variable where the option argument will be stored. Will be
+  unset if option does not require an argument. If omitted, will default to
+  `OPTARG`.
+
+## Compatibility notes
+
+Great care was taken to ensure `getopts` is as compatible as possible.
+
+- It is tested with and supports at least:
+  - bash (both 3.2 -- which is bundled with macOS -- and modern)
+  - dash
+  - zsh
+- `set -e`, `set -u` do not affect this version of `getopts`.
+- The execution environment is not altered in any way other than the variable
+  names passed in its first argument.
+- It does not `exec` _any_ external dependency, not counting `printf`, which is
+  built-in for most shells.
+
 ## Bugs
 
-- `opt`, `arg`, `i` will not work as variable names for getopts output. Will be
-  fixed in a new version.
+- `opt`, `arg`, `idx` will not work as variable names for getopts output. Will
+  be fixed in a new version.
 - `OPTIND` does not work. This will never be fixed. I tried a lot of things,
   but it boils down to the simple fact that this one variable can't hold the
   full state of `getopts`, as it needs to remember at which character in the

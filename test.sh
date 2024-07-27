@@ -7,7 +7,7 @@ cd "$(mktemp -d)"
 
 testops() { #1:description, 2:spec, 3:endindex, 3:expected, 3:args...
     sh="$(ps -p $$ -o comm=)"
-    for x in spec verbose opt arg i; do
+    for x in spec nl c long opt idx arg prog hasarg; do
         eval "$x=sentinel"
     done
     unset option index OPTARG
@@ -24,7 +24,7 @@ testops() { #1:description, 2:spec, 3:endindex, 3:expected, 3:args...
     diff -u "$sh $description expect:" "$sh $description result:" || :
     [ "$end_index" = "$index" ] \
         || echo "$sh $description index differs: $index -> $end_index"
-    for x in spec verbose opt arg i; do
+    for x in spec nl c long opt idx arg prog hasarg; do
         [ "$(eval "echo \"\$$x"\")" = sentinel ] \
             || echo "$sh getopts overwrote $x"
     done

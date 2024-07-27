@@ -9,100 +9,99 @@
 #You should have received a copy of the CC0 Public Domain Dedication along with
 #this software. If not, see http://creativecommons.org/publicdomain/zero/1.0/
 
-_getopts_inc() {
-    printf "%s.%s" "$((${1%.*} + ${2%.*}))" \
-        "$([ ${2#*.} != 0 ] && echo $((${1#*.} + ${2#*.})) || echo 0)"
-}
-
-_getopts_worker() {
-    shift 2
-    [ "${i%.*}" -gt $# ] && return 1
-    shift $((${i%.*} - 1))
-    set -- "$(printf "%s" "$1" | sed '1s/^-.\{'$((${i#*.}))'\}/-/')" \
-        "${2-}" "${3-}"
-    opt="$(
-        printf "%s" "$1" | awk "$(printf '%s' "$spec" \
-            | sed "$(printf 's/.:\{0,1\}\(([^)]*)\)\{0,\}/&\\\n/g;s/(/\\\n(/g;')" \
-            | awk '
-            BEGIN {
-                print "BEGIN { FS = \"=\" }"
-                print "{ if (s == 1) { print $0; next } else { s = 1 } }"
-            }
-            /^\(.*\)$/ {
-                long = substr($0,2,length($0) - 2)
-                if (substr(flag, 2) == ":") {
-                    printf("/^--%s=/ { print \"1.0:%s: \" $2; next }\n", long, out)
-                    printf("/^--%s$/ { print \"2.0:%s:\"; next }\n", long, out)
-                } else {
-                    printf("/^--%s$/ { print \"1.0:%s\"; next }\n", long, out)
-                }
-                next
-            }
-            /^./ { flag = "\\" $0; out = substr($0, 1, 1) }
-            /^[\\"]/ { out = "\\" substr($0, 1, 1) }
-            /^[^][\\().*+?{}|^$\/]/ { flag = $0 }
-            /^.:$/ {
-                printf("/^-%s./ { print \"1.0:%s: \"", substr(flag, 1, 1), out)
-                printf(" substr($0, 3); next }\n")
-                printf("/^-%s$/ { print \"2.0:%s:\"; next }\n", substr(flag,1,1),out)
-                next
-            }
-            /^.$/ {
-                printf("/^-%s$/ { print \"1.0:%s\"; next }\n", flag, out)
-                printf("/^-%s./ { print \"0.1:%s\"; next }\n", flag, out)
-                next
-            }
-            /^$/ { next }
-            { print $0 | "cat >&2"; print "BEGIN { exit 3 }"; exit 3 }
-            END { 
-                print "/^--$/ { print \"1.0\"; next }\n/^-./ { exit 2 }"
-                print "/^[^-]/ { print \"0.0\"; next }"
-                print "END { if (NR == 0) print \"0.0\"; }"
-            }
-        ')"
-    )" || return $?
-    i=$(_getopts_inc "$i" "${opt%%:*}")
-    case "$(printf '%s' "$opt" | sed 's/^[0-9]*\.[0-9]*:.//')" in
-    :\ *)
-        arg="${opt#*.*:*: }"
-        opt="${opt%: $arg}"
-        ;;
-    :)
-        opt="${opt%:}"
-        arg="$2"
-        ;;
-    [01].0)
-        opt=""
-        return 1
-        ;;
-    esac
-    opt="${opt#*.*:}"
-}
-
-_getopts_return() {
-    eval "i=\"\${${2#*:}-1.0}\""
-    _getopts_worker "$@"
-    case $? in
-    0)
-        eval "${2%:*}=\$opt"
-        eval "${2#*:}=\$i"
-        OPTARG="$arg"
-        ;;
-    1)
-        eval "${2%:*}=\?"
-        eval "${2#*:}=\$i"
-        OPTARG="$arg"
-        return 1
-        ;;
-    2)
-        return 2
-        ;;
+_getopts_compile() {
+    nl="$(printf \\n_)" && nl="${nl%_}"
+    spec="${1#:}"
+    opt="${2%%:*}"
+    idx="${2#$opt:}" && idx="${idx%:*}"
+    case "$2" in
+    *:*:*) arg="${2##*:}" ;;
+    *:*) arg="OPTARG" ;;
     *)
-        return 2
+        printf "ERROR: %s does not match <opt_var>:<idx_var>[:<arg_var>]\n" \
+            "$2" >&2
+        exit 2
         ;;
     esac
+    prog="${prog}$idx=\${$idx-1.0}$nl"
+    prog="${prog}[ \"\${$idx%.*}\" -le \$# ] || return 1$nl"
+    prog="${prog}shift \$((\${$idx%.*} - 1))$nl"
+    prog="${prog}[ \"\$(printf %.1s \"\$1\")\" = - ] || return 1$nl"
+    prog="${prog}$arg=\"\$1\"$nl"
+    prog="${prog}while [ \${#$arg} -gt \$((\${#1} - \${$idx#*.})) ]; do$nl"
+    prog="${prog}    $arg=\"-\${$arg#-?}\"$nl"
+    prog="${prog}done$nl"
+    prog="${prog}case \"\$( \\$nl"
+    prog="${prog}    if [ \"--\${$arg#--}\" = \"\$1\" ]; then$nl"
+    prog="${prog}        printf %s \"\${$arg}\"$nl"
+    prog="${prog}    else$nl"
+    prog="${prog}        printf %.2s \"\${$arg}\"$nl"
+    prog="${prog}    fi$nl"
+    prog="${prog})\" in $nl"
+    while [ -n "$spec" ]; do
+        c="$(printf %.1s "$spec")"
+        case "$c" in
+        [A-Za-z0-9_]) : ;;
+        *) c="\\$c" ;;
+        esac
+        spec="${spec#?}"
+        hasarg="${spec%%[!:]*}"
+        if [ "$hasarg" = : ]; then
+            spec="${spec#:}"
+        fi
+        if [ "$(printf %.1s "$spec")" = \( ]; then
+            spec="${spec#\(}"
+            long="${spec%%\)*}"
+            spec="${spec#$long\)}"
+            long="'--$long'"
+        else
+            long=""
+        fi
+        if [ "$hasarg" = : ]; then
+            if [ -n "${long-}" ]; then
+                prog="${prog}${long}=*)$nl"
+                prog="${prog}    $opt=$c$nl"
+                prog="${prog}    $arg=\"\${$arg#$long=}\"$nl"
+                prog="${prog}    $idx=\$((\${$idx%.*} + 1)).0$nl"
+                prog="${prog}    ;;$nl"
+                prog="${prog}${long})$nl"
+                prog="${prog}    $opt=$c$nl"
+                prog="${prog}    $arg=\"\$2\"$nl"
+                prog="${prog}    $idx=\$((\${$idx%.*} + 2)).0$nl"
+                prog="${prog}    ;;$nl"
+            fi
+            prog="${prog}-$c)$nl"
+            prog="${prog}    $opt=$c$nl"
+            prog="${prog}    if [ \"\${$arg}\" = -$c ]; then$nl"
+            prog="${prog}        $arg=\"\$2\"$nl"
+            prog="${prog}        $idx=\$((\${$idx%.*} + 2)).0$nl"
+            prog="${prog}    else$nl"
+            prog="${prog}        $arg=\"\${$arg#-$c}\"$nl"
+            prog="${prog}        $idx=\$((\${$idx%.*} + 1)).0$nl"
+            prog="${prog}    fi$nl"
+            prog="${prog}    ;;$nl"
+        else
+            prog="${prog}-$c${long:+|${long}})$nl"
+            prog="${prog}    $opt=$c$nl"
+            prog="${prog}    [ -n \"\${$arg#-$c}\" ] \\$nl"
+            [ -z "${long-}" ] \
+                || prog="${prog}        && [ \"\${$arg}\" != $long ] \\$nl"
+            prog="${prog}        && $idx=\${$idx%.*}.\$((\${$idx#*.} + 1)) \\$nl"
+            prog="${prog}        || $idx=\$((\${$idx%.*} + 1)).0$nl"
+            prog="${prog}    unset $arg$nl"
+            prog="${prog}    ;;$nl"
+        fi
+    done
+    prog="${prog}--)$nl"
+    prog="${prog}    $idx=\$((\${$idx%.*} + 1)).0$nl"
+    prog="${prog}    return 1$nl"
+    prog="${prog}    ;;$nl"
+    prog="${prog}*) return 2 ;;$nl"
+    prog="${prog}esac$nl"
+    shift 2
+    eval "$nl$prog"
 }
 
-getopts() { #1: spec, 2: name, 3: args...
-    spec="${1#:}" verbose="${1%%[!:]*}" opt= arg= i= _getopts_return "$@"
+getopts() {
+    spec= nl= c= long= opt= idx= arg= prog= hasarg= _getopts_compile "$@"
 }
