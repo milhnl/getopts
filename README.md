@@ -79,6 +79,9 @@ Great care was taken to ensure `getopts` is as compatible as possible.
 - It is tested with and supports at least:
   - bash (both 3.2 -- which is bundled with macOS -- and modern)
   - dash
+  - ksh
+  - ksh93
+  - mksh
   - zsh
 - `set -e`, `set -u` do not affect this version of `getopts`.
 - The execution environment is not altered in any way other than the variable

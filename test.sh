@@ -18,7 +18,9 @@ testops() { #1:description, 2:spec, 3:endindex, 3:expected, 3:args...
     printf "\n" >"$sh $description result:"
     shift 4
     while getopts "$optstring" "option:index" "$@"; do
-        printf "%s:%s:%s\n" "$index" "$option" "${OPTARG+ $OPTARG}" \
+        #ksh does not support the ${var+ if set} syntax apparently
+        printf "%s:%s:%s\n" "$index" "$option" \
+            "$([ -z "${OPTARG-}" ] || printf " %s" "$OPTARG")" \
             >>"$sh $description result:"
     done
     diff -u "$sh $description expect:" "$sh $description result:" || :
