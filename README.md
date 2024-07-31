@@ -88,8 +88,6 @@ Great care was taken to ensure `getopts` is as compatible as possible.
 
 ## Bugs
 
-- `opt`, `arg`, `idx` will not work as variable names for getopts output. Will
-  be fixed in a new version.
 - `OPTIND` does not work. This will never be fixed. I tried a lot of things,
   but it boils down to the simple fact that this one variable can't hold the
   full state of `getopts`, as it needs to remember at which character in the

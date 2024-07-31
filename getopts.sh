@@ -98,10 +98,12 @@ _getopts_compile() {
     prog="${prog}    ;;$nl"
     prog="${prog}*) return 2 ;;$nl"
     prog="${prog}esac$nl"
-    shift 2
-    eval "$nl$prog"
+    printf %s "$prog"
 }
 
 getopts() {
-    spec= nl= c= long= opt= idx= arg= prog= hasarg= _getopts_compile "$@"
+    eval "shift 2; $(
+        func= spec= nl= c= long= opt= idx= arg= prog= hasarg= \
+            _getopts_compile "$@"
+    )"
 }
