@@ -6,25 +6,27 @@ set -eu
 cd "$(mktemp -d)"
 
 testops() { #1:description, 2:spec, 3:endindex, 3:expected, 3:args...
+    sh="$(ps -p $$ -o comm=)"
     for x in spec verbose opt arg i; do
         eval "$x=sentinel"
     done
-    unset index option OPTARG
+    unset option index OPTARG
     description="$1"
     optstring="$2"
     end_index="$3"
-    printf "%s" "$4" >"expect: $description"
-    printf "\n" >"result: $description"
+    printf "%s" "$4" >"$sh $description expect:"
+    printf "\n" >"$sh $description result:"
     shift 4
     while getopts "$optstring" "option:index" "$@"; do
         printf "%s:%s: %s\n" "$index" "$option" "$OPTARG" \
-            >>"result: $description"
+            >>"$sh $description result:"
     done
-    diff -u "expect: $description" "result: $description" ||:
+    diff -u "$sh $description expect:" "$sh $description result:" || :
     [ "$end_index" = "$index" ] \
-        || echo "index: $description $index ~ $end_index"
+        || echo "$sh $description index differs: $index -> $end_index"
     for x in spec verbose opt arg i; do
-        [ "$(eval "echo \"\$$x"\")" = sentinel ] || echo "getopts overwrote $x"
+        [ "$(eval "echo \"\$$x"\")" = sentinel ] \
+            || echo "$sh getopts overwrote $x"
     done
 }
 
