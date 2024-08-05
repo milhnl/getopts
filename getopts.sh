@@ -10,19 +10,29 @@
 #this software. If not, see http://creativecommons.org/publicdomain/zero/1.0/
 
 _getopts_compile() {
-    nl="$(printf \\n_)" && nl="${nl%_}"
-    spec="${1#:}"
-    opt="${2%%:*}"
-    idx="${2#$opt:}" && idx="${idx%:*}"
-    case "$2" in
+    case "${2-}" in
+    *:*:*:*)
+        func="${2##*:}"
+        if command -v "$func" >/dev/null 2>&1; then
+            printf "$func \"\$@\""
+            return
+        fi
+        arg="${2%:*}" && arg="${arg##*:}"
+        prog="${prog}${func}() "
+        ;;
     *:*:*) arg="${2##*:}" ;;
     *:*) arg="OPTARG" ;;
     *)
-        printf "ERROR: %s does not match <opt_var>:<idx_var>[:<arg_var>]\n" \
-            "$2" >&2
+        printf "Usage: getopts <optstring> <opt>:<idx>[:<arg>[:<func>]] $(
+        )[args...]\n" >&2
         exit 2
         ;;
     esac
+    nl="$(printf \\n_)" && nl="${nl%_}"
+    spec="${1#:}"
+    opt="${2%%:*}"
+    idx="${2#$opt:}" && idx="${idx%%:*}"
+    prog="${prog}{$nl"
     prog="${prog}$idx=\${$idx-1.0}$nl"
     prog="${prog}[ \"\${$idx%.*}\" -le \$# ] || return 1$nl"
     prog="${prog}shift \$((\${$idx%.*} - 1))$nl"
@@ -98,6 +108,8 @@ _getopts_compile() {
     prog="${prog}    ;;$nl"
     prog="${prog}*) return 2 ;;$nl"
     prog="${prog}esac$nl"
+    prog="${prog}}$nl"
+    [ -z "$func" ] || prog="${prog}$func \"\$@\"$nl"
     printf %s "$prog"
 }
 

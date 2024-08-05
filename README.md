@@ -40,7 +40,7 @@ grammar for long options is derived from Solaris and extremely simple to use.
 
 The full usage of `getopts` is:
 
-    getopts <optstring> <opt>:<idx>[:<arg>] [args...]
+    getopts <optstring> <opt>:<idx>[:<arg>[:<func>]] [args...]
 
 #### `optstring`
 
@@ -71,6 +71,26 @@ An example is given above under 'Usage'.
 - `arg`: The shell variable where the option argument will be stored. Will be
   unset if option does not require an argument. If omitted, will default to
   `OPTARG`.
+- `func`: The shell function where, if given, the generated parser is cached.
+  The difference in performance can be quite dramatic, as generating the parser
+  function is far more expensive than using it. Please make sure this shell
+  function (or executable) isn't already defined, `getopts` does not check
+  whether it matches what would be generated.
+
+  The generated function can then also be used directly, which means that
+  something like this is also possible:
+
+      getopts f opt:idx:arg:example_parser || :
+      while example_parser "$@"; do
+          #Do something with $opt and $arg
+      done
+
+  The `|| :` is necessary if this snippet is used in a script with `set -e`
+  enabled, because getopts will have a non-zero return value when no options
+  were given.
+
+  Using it this way is not necessary to speed up `getopts`, only passing a
+  function name is.
 
 ## Compatibility notes
 
@@ -84,8 +104,8 @@ Great care was taken to ensure `getopts` is as compatible as possible.
   - mksh
   - zsh
 - `set -e`, `set -u` do not affect this version of `getopts`.
-- The execution environment is not altered in any way other than the variable
-  names passed in its first argument.
+- The execution environment is not altered in any way other than the
+  variable/function names passed in its first argument.
 - It does not `exec` _any_ external dependency, not counting `printf`, which is
   built-in for most shells.
 
