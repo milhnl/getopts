@@ -9,18 +9,20 @@ testops() { #1:description, 2:spec, 3:endindex, 3:expected, 3:args...
     for x in spec verbose opt arg i; do
         eval "$x=sentinel"
     done
-    unset INDEX OPT OPTARG
-    DESCRIPTION="$1"
-    OPTSTRING="$2"
-    ENDINDEX="$3"
-    printf "%s" "$4" >"expect: $DESCRIPTION"
-    printf "\n" >"result: $DESCRIPTION"
+    unset index option OPTARG
+    description="$1"
+    optstring="$2"
+    end_index="$3"
+    printf "%s" "$4" >"expect: $description"
+    printf "\n" >"result: $description"
     shift 4
-    while getopts "$OPTSTRING" "OPT:INDEX" "$@"; do
-        printf "%s:%s: %s\n" "$INDEX" "$OPT" "$OPTARG" >>"result: $DESCRIPTION"
+    while getopts "$optstring" "option:index" "$@"; do
+        printf "%s:%s: %s\n" "$index" "$option" "$OPTARG" \
+            >>"result: $description"
     done
-    diff -u "expect: $DESCRIPTION" "result: $DESCRIPTION" ||:
-    [ "$ENDINDEX" = "$INDEX" ] || echo "INDEX: $DESCRIPTION $INDEX ~ $ENDINDEX"
+    diff -u "expect: $description" "result: $description" ||:
+    [ "$end_index" = "$index" ] \
+        || echo "index: $description $index ~ $end_index"
     for x in spec verbose opt arg i; do
         [ "$(eval "echo \"\$$x"\")" = sentinel ] || echo "getopts overwrote $x"
     done
